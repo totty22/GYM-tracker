@@ -1,4 +1,4 @@
-// frontend/src/App.jsx (VERSIÓN FINAL Y CORRECTA)
+// frontend/src/App.jsx
 
 import React from 'react';
 import { Routes, Route, Link as RouterLink } from 'react-router-dom';
@@ -14,6 +14,7 @@ import HomePage from './pages/HomePage';
 import RoutinesPage from './pages/RoutinesPage';
 import WorkoutPage from './pages/WorkoutPage';
 import LoginPage from './pages/LoginPage';
+import RoutineEditPage from './pages/RoutineEditPage'; // <--- Importante
 import PrivateRoute from './components/PrivateRoute';
 
 // Componente de Navegación
@@ -51,12 +52,18 @@ function AppLayout() {
       <Navigation />
       <Container component="main" sx={{ flexGrow: 1, py: 3 }} maxWidth="lg">
         <Routes>
+          {/* Rutas Públicas */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
+
+          {/* Rutas Privadas */}
           <Route element={<PrivateRoute />}>
             <Route path="/routines" element={<RoutinesPage />} />
+            <Route path="/routines/:id" element={<RoutineEditPage />} />
             <Route path="/workout/:routineId" element={<WorkoutPage />} />
           </Route>
+          
+          {/* Página 404 */}
           <Route path="*" element={
             <Box sx={{textAlign: 'center', mt: 8}}>
               <Typography variant="h3">404 - Page Not Found</Typography>

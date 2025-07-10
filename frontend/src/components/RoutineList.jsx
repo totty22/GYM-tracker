@@ -1,6 +1,7 @@
 // frontend/src/components/RoutineList.jsx
 
 import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { 
     Box, 
     Typography, 
@@ -11,9 +12,11 @@ import {
     CardContent,
     CircularProgress,
     Button,
-    Divider
+    Divider,
+    IconButton
 } from '@mui/material';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import EditIcon from '@mui/icons-material/Edit';
 
 const RoutineList = ({ routines, loading, onSelectRoutine }) => {
     if (loading) {
@@ -36,13 +39,23 @@ const RoutineList = ({ routines, loading, onSelectRoutine }) => {
                             <React.Fragment key={routine.id}>
                                 <ListItem 
                                     secondaryAction={
-                                        <Button 
-                                            variant="contained" 
-                                            startIcon={<FitnessCenterIcon />}
-                                            onClick={() => onSelectRoutine(routine.id)}
-                                        >
-                                            Start Workout
-                                        </Button>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <IconButton 
+                                                component={RouterLink} 
+                                                to={`/routines/${routine.id}`} 
+                                                aria-label="edit"
+                                            >
+                                                <EditIcon />
+                                            </IconButton>
+                                            <Button 
+                                                variant="contained" 
+                                                size="small"
+                                                startIcon={<FitnessCenterIcon />}
+                                                onClick={() => onSelectRoutine(routine.id)}
+                                            >
+                                                Start
+                                            </Button>
+                                        </Box>
                                     }
                                 >
                                     <ListItemText 
@@ -55,8 +68,9 @@ const RoutineList = ({ routines, loading, onSelectRoutine }) => {
                         ))}
                     </List>
                 ) : (
-                    <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
-                        You haven't created any routines yet. Use the form above to get started.
+                    <Typography variant="body1" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
+                        You haven't created any routines yet. <br />
+                        Click "Create New Routine" to get started.
                     </Typography>
                 )}
             </CardContent>

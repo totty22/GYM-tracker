@@ -1,65 +1,21 @@
-from django.shortcuts import render
+# backend/routines/views.py (VERSIÓN COMPLETA Y CORRECTA)
 
-from rest_framework import viewsets
-from .models import Exercise, Routine, RoutineExercise, WorkoutSession, ExerciseLog
-from .serializers import (
-    ExerciseSerializer, RoutineSerializer, RoutineExerciseSerializer,
-    WorkoutSessionSerializer, ExerciseLogSerializer
-)
-from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate, login, logout
+from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from .serializers import UserSerializer
+from rest_framework.permissions import IsAuthenticated
 
-class ExerciseViewSet(viewsets.ModelViewSet):
-    queryset = Exercise.objects.all()
-    serializer_class = ExerciseSerializer
-    #permission_classes = [IsAuthenticated] # Solo usuarios autenticados
+from .models import Exercise, Routine, RoutineExercise, WorkoutSession, ExerciseLog, User
+from .serializers import (
+    ExerciseSerializer, RoutineSerializer, RoutineExerciseSerializer,
+    WorkoutSessionSerializer, ExerciseLogSerializer, UserSerializer
+)
 
-class RoutineViewSet(viewsets.ModelViewSet):
-    serializer_class = RoutineSerializer
-    permission_classes = [IsAuthenticated]
+# --- Vistas de Autenticación ---
 
-    def get_queryset(self):
-        # Los usuarios solo pueden ver y gestionar sus propias rutinas
-        return Routine.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        # Asigna el usuario actual al crear una nueva rutina
-        serializer.save(user=self.request.user)
-
-class RoutineExerciseViewSet(viewsets.ModelViewSet):
-    queryset = RoutineExercise.objects.all()
-    serializer_class = RoutineExerciseSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        # Filtra para que un usuario no pueda ver ejercicios de rutinas ajenas
-        return RoutineExercise.objects.filter(routine__user=self.request.user)
-
-# Vistas para WorkoutSession y ExerciseLog (pueden ser más complejas en el futuro)
-class WorkoutSessionViewSet(viewsets.ModelViewSet):
-    serializer_class = WorkoutSessionSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return WorkoutSession.objects.filter(user=self.request.user)
-    
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-class ExerciseLogViewSet(viewsets.ModelViewSet):
-    queryset = ExerciseLog.objects.all()
-    serializer_class = ExerciseLogSerializer
-    permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        return ExerciseLog.objects.filter(workout_session__user=self.request.user)
-    
 class LoginView(APIView):
-    permission_classes = [] # Permite el acceso a cualquiera
+    permission_classes = [] 
 
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
@@ -80,3 +36,54 @@ class UserMeView(APIView):
 
     def get(self, request, *args, **kwargs):
         return Response(UserSerializer(request.user).data)
+
+# --- Vistas del Modelo (ViewSets) ---
+
+class ExerciseViewSet(viewsets.ModelViewSet):
+    queryset = Exercise.objects.all()
+    serializer_class = ExerciseSerializer
+    # Dejamos esto abierto para que el frontend pueda obtener la lista de ejercicios sin loguearse
+    # permission_classes = [IsAuthenticated] 
+
+class RoutineViewSet(viewsets.ModelViewSet):
+    serializer_class = RoutineSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Routine.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+# --- LA CLASE QUE FALTABA ---
+class RoutineExerciseViewSet(viewsets.ModelViewSet):
+    """
+    Este ViewSet maneja los ejercicios individuales que pertenecen a una rutina.
+    Es necesario para que el enrutador de DRF funcione correctamente.
+    """
+    serializer_class = RoutineExerciseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Asegura que un usuario solo pueda ver y modificar los ejercicios de sus propias rutinas.
+        """
+        return RoutineExercise.objects.filter(routine__user=self.request.user)
+
+
+class WorkoutSessionViewSet(viewsets.ModelViewSet):
+    serializer_class = WorkoutSessionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return WorkoutSession.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class ExerciseLogViewSet(viewsets.ModelViewSet):
+    serializer_class = ExerciseLogSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return ExerciseLog.objects.filter(workout_session__user=self.request.user)

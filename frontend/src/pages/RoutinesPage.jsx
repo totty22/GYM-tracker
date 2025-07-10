@@ -1,56 +1,52 @@
 // frontend/src/pages/RoutinesPage.jsx
 
-import React, { useState, useEffect } from 'react';
-import { Container } from '@mui/material';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Container, Button, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import AddIcon from '@mui/icons-material/Add';
 
 import axiosInstance from '../api/axios';
 import RoutineList from '../components/RoutineList';
-import RoutineCreationForm from '../components/RoutineCreationForm';
+import toast from 'react-hot-toast';
 
 const RoutinesPage = () => {
     const [routines, setRoutines] = useState([]);
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate(); // Hook para redirigir al usuario
+    const navigate = useNavigate();
 
-    const fetchRoutines = async () => {
+    const fetchRoutines = useCallback(async () => {
         setLoading(true);
         try {
-            // NOTA: Esta petición requiere que el usuario esté autenticado.
-            // Para probar, asegúrate de haber iniciado sesión en el panel de admin de Django 
-            // en tu navegador (http://127.0.0.1:8000/admin/). 
-            // El navegador guardará la cookie de sesión y la enviará con las peticiones.
             const response = await axiosInstance.get('/api/routines/');
             setRoutines(response.data);
         } catch (err) {
             console.error("Failed to fetch routines", err);
-            // Idealmente, aquí se mostraría un mensaje de error al usuario.
-            // Por ejemplo, si da un error 403, redirigir a la página de login.
+            toast.error("Could not load your routines. Please try again.");
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchRoutines();
-    }, []);
-
-    const handleRoutineCreated = () => {
-        // Vuelve a cargar las rutinas para que la nueva aparezca en la lista
-        fetchRoutines();
-    };
+    }, [fetchRoutines]);
 
     const handleSelectRoutine = (routineId) => {
-        // Navega a la página de entrenamiento con el ID de la rutina seleccionada
         navigate(`/workout/${routineId}`);
     };
 
     return (
         <Container maxWidth="md">
-            {/* El formulario para crear nuevas rutinas */}
-            <RoutineCreationForm onRoutineCreated={handleRoutineCreated} />
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+                 <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => navigate('/routines/new')}
+                >
+                    Create New Routine
+                </Button>
+            </Box>
 
-            {/* La lista de rutinas existentes */}
             <RoutineList 
                 routines={routines} 
                 loading={loading} 
