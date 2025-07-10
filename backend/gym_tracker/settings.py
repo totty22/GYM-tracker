@@ -86,8 +86,8 @@ DATABASES = {
         'NAME': 'gym_tracker_db',
         'USER': 'gym_tracker_user',
         'PASSWORD': 'Toni123.',
-        'HOST': 'localhost',  # o 'db' cuando usemos Docker
-        'PORT': '54321',
+        'HOST': '192.168.0.53',  # o 'db' cuando usemos Docker
+        'PORT': '5432',
     }
 }
 
