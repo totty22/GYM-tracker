@@ -1,19 +1,34 @@
+// frontend/src/api/axios.js (VERSIÓN FINAL Y ROBUSTA)
+
 import axios from 'axios';
 
-// La URL base apunta a la ruta de nuestra API en el backend de Django
-const API_URL = 'http://localhost:8000/api/';
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 
 const axiosInstance = axios.create({
-    baseURL: 'http://127.0.0.1:8000/',
-    timeout: 5000, // Tiempo de espera de 5 segundos
+    // baseURL la dejamos vacía para tener control total en las llamadas.
+    // Esto evita la duplicación de /api/
+    baseURL: '/', 
+    timeout: 5000,
     headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        // Añadimos el token CSRF aquí directamente
+        'X-CSRFToken': getCookie('csrftoken')
     },
-    withCredentials: true 
+    withCredentials: true, 
 });
-
-axiosInstance.defaults.xsrfCookieName = 'csrftoken';
-axiosInstance.defaults.xsrfHeaderName = 'X-CSRFToken';
 
 export default axiosInstance;

@@ -1,43 +1,61 @@
-import React from 'react';
-import './App.css'; // Estilos básicos que vienen con Vite
+// frontend/src/App.jsx (VERSIÓN VERIFICADA)
 
-// 1. Importa los componentes que hemos creado
-import ExerciseList from './components/ExerciseList';
-import RoutineList from './components/RoutineList';
-import RoutineCreationForm from './components/RoutineCreationForm';
+import React from 'react';
+import { Routes, Route, Link as RouterLink } from 'react-router-dom';
+import { 
+  AppBar, 
+  Toolbar, 
+  Typography, 
+  Container, 
+  Button, 
+  Box,
+  Icon // Usaremos Icon para el FitnessCenterIcon
+} from '@mui/material';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter'; // Asegúrate de que esta línea exista y el paquete esté instalado
+
+// Importaciones de las páginas
+import HomePage from './pages/HomePage';
+import RoutinesPage from './pages/RoutinesPage';
+import WorkoutPage from './pages/WorkoutPage';
 
 function App() {
-  // NOTA: Para que esto funcione, necesitas estar "logueado" en el backend.
-  // La forma más fácil de hacerlo para probar es:
-  // 1. Abre tu navegador y ve a http://127.0.0.1:8000/admin/
-  // 2. Inicia sesión con el superusuario que creaste.
-  // El navegador guardará una cookie de sesión. Como el frontend y el backend
-  // están en localhost, ¡el frontend podrá usar esa cookie para autenticarse!
-
-  // Esta es una función para poder refrescar la lista de rutinas cuando se crea una nueva.
-  // Para que funcione, necesitamos un pequeño ajuste en RoutineList (lo vemos abajo).
-  const [refreshKey, setRefreshKey] = React.useState(0);
-
-  const handleRoutineCreated = () => {
-    // Cambiamos el estado para forzar a RoutineList a que se vuelva a renderizar y a buscar datos
-    setRefreshKey(oldKey => oldKey + 1);
-  };
-
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Gym Routine Tracker</h1>
-      </header>
-      <main>
-        {/* 2. Añade los componentes al JSX para que se muestren en la página */}
-        <RoutineCreationForm onRoutineCreated={handleRoutineCreated} />
-        <hr />
-        {/* Pasamos 'key' para que React lo detecte como un componente nuevo y lo recargue */}
-        <RoutineList key={refreshKey} />
-        <hr />
-        <ExerciseList />
-      </main>
-    </div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
+      {/* BARRA DE NAVEGACIÓN SUPERIOR */}
+      <AppBar position="static">
+        <Toolbar>
+          <FitnessCenterIcon sx={{ mr: 2 }}/>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            Gym Tracker
+          </Typography>
+          <Button color="inherit" component={RouterLink} to="/">Home</Button>
+          <Button color="inherit" component={RouterLink} to="/routines">My Routines</Button>
+        </Toolbar>
+      </AppBar>
+
+      {/* CONTENIDO PRINCIPAL DE LA PÁGINA */}
+      <Container component="main" sx={{ flexGrow: 1, py: 3 }} maxWidth="lg">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/routines" element={<RoutinesPage />} />
+          <Route path="/workout/:routineId" element={<WorkoutPage />} />
+          {/* Una página 404 simple */}
+          <Route path="*" element={
+            <Box sx={{textAlign: 'center', mt: 8}}>
+              <Typography variant="h3">404 - Page Not Found</Typography>
+              <Button component={RouterLink} to="/" variant="contained" sx={{mt: 4}}>Go Home</Button>
+            </Box>
+          } /> 
+        </Routes>
+      </Container>
+
+       {/* FOOTER */}
+      <Box component="footer" sx={{ p: 2, mt: 'auto', bgcolor: 'primary.dark', color: 'white', textAlign: 'center' }}>
+        <Typography variant="body2">
+          © {new Date().getFullYear()} Gym Tracker App
+        </Typography>
+      </Box>
+    </Box>
   );
 }
 

@@ -1,42 +1,66 @@
-import React, { useState, useEffect } from 'react';
-import axiosInstance from '../api/axios';
+// frontend/src/components/RoutineList.jsx
 
-const RoutineList = () => {
-    const [routines, setRoutines] = useState([]);
-    const [loading, setLoading] = useState(true);
+import React from 'react';
+import { 
+    Box, 
+    Typography, 
+    List, 
+    ListItem, 
+    ListItemText, 
+    Card, 
+    CardContent,
+    CircularProgress,
+    Button,
+    Divider
+} from '@mui/material';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 
-    useEffect(() => {
-        const fetchRoutines = async () => {
-            try {
-                // Esta petición sí requiere autenticación, ya que filtra por usuario
-                const response = await axiosInstance.get('/api/routines/');
-                setRoutines(response.data);
-            } catch (err) {
-                console.error("Failed to fetch routines", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchRoutines();
-    }, []);
-
-    if (loading) return <p>Loading routines...</p>;
+const RoutineList = ({ routines, loading, onSelectRoutine }) => {
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
 
     return (
-        <div>
-            <h2>Your Routines</h2>
-            {routines.length > 0 ? (
-                <ul>
-                    {routines.map(routine => (
-                        <li key={routine.id}>
-                            {routine.name}
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p>You have not created any routines yet. (Or you are not logged in)</p>
-            )}
-        </div>
+        <Card>
+            <CardContent>
+                <Typography variant="h5" component="h2" gutterBottom>
+                    Your Routines
+                </Typography>
+                {routines.length > 0 ? (
+                    <List>
+                        {routines.map((routine, index) => (
+                            <React.Fragment key={routine.id}>
+                                <ListItem 
+                                    secondaryAction={
+                                        <Button 
+                                            variant="contained" 
+                                            startIcon={<FitnessCenterIcon />}
+                                            onClick={() => onSelectRoutine(routine.id)}
+                                        >
+                                            Start Workout
+                                        </Button>
+                                    }
+                                >
+                                    <ListItemText 
+                                        primary={routine.name} 
+                                        secondary={routine.description || 'No description provided'} 
+                                    />
+                                </ListItem>
+                                {index < routines.length - 1 && <Divider />}
+                            </React.Fragment>
+                        ))}
+                    </List>
+                ) : (
+                    <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
+                        You haven't created any routines yet. Use the form above to get started.
+                    </Typography>
+                )}
+            </CardContent>
+        </Card>
     );
 };
 

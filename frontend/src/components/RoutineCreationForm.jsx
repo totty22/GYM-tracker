@@ -2,96 +2,94 @@
 
 import React, { useState } from 'react';
 import axiosInstance from '../api/axios';
-
-// --- NUEVA FUNCIÓN ---
-// Esta es una función de ayuda estándar para leer el valor de una cookie específica.
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // ¿Comienza esta cookie con el nombre que queremos?
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-// --- FIN DE LA NUEVA FUNCIÓN ---
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Card,
+  CardContent,
+  Alert
+} from '@mui/material';
 
 const RoutineCreationForm = ({ onRoutineCreated }) => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setIsSubmitting(true);
 
         if (!name) {
             setError('Routine name is required.');
+            setIsSubmitting(false);
             return;
         }
 
         try {
-            // --- PASO 1: Obtener el token CSRF manualmente ---
-            const csrfToken = getCookie('csrftoken');
-            console.log("CSRF Token leído de la cookie:", csrfToken); // Para depurar
-
-            if (!csrfToken) {
-                setError('CSRF Token not found. Please refresh the page.');
-                return;
-            }
-
-            // --- PASO 2: Enviar la petición con la cabecera manual ---
-            const response = await axiosInstance.post('/api/routines/', {
+            await axiosInstance.post('/api/routines/', {
                 name: name,
                 description: description
-            }, {
-                headers: {
-                    'X-CSRFToken': csrfToken // Añadimos la cabecera explícitamente
-                }
             });
-            
-            console.log('Routine created:', response.data);
             setName('');
             setDescription('');
-            if(onRoutineCreated) {
-                onRoutineCreated(response.data);
+            if (onRoutineCreated) {
+                onRoutineCreated(); // Llama a la función del padre para refrescar la lista
             }
         } catch (err) {
-            setError('Failed to create routine. Please check console.');
+            setError('Failed to create routine. Are you logged in?');
             console.error(err);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <h3>Create a New Routine</h3>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            <div>
-                <label htmlFor="routine-name">Routine Name:</label>
-                <input
-                    id="routine-name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                />
-            </div>
-            <div>
-                <label htmlFor="routine-desc">Description:</label>
-                <textarea
-                    id="routine-desc"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                />
-            </div>
-            <button type="submit">Create Routine</button>
-        </form>
+        <Card sx={{ my: 4 }}>
+            <CardContent>
+                <Typography variant="h5" component="h2" gutterBottom>
+                    Create a New Routine
+                </Typography>
+                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                <Box component="form" onSubmit={handleSubmit} noValidate>
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        id="routine-name"
+                        label="Routine Name"
+                        name="name"
+                        autoComplete="off"
+                        autoFocus
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                    />
+                    <TextField
+                        margin="normal"
+                        fullWidth
+                        name="description"
+                        label="Description (Optional)"
+                        id="routine-desc"
+                        multiline
+                        rows={3}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                    />
+                    <Button
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        sx={{ mt: 3, mb: 2 }}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? 'Creating...' : 'Create Routine'}
+                    </Button>
+                </Box>
+            </CardContent>
+        </Card>
     );
 };
 
