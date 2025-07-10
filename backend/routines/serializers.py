@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Exercise, Routine, RoutineExercise, WorkoutSession, ExerciseLog
+from django.contrib.auth.models import User # Asegúrate de que este import existe
 
 class ExerciseSerializer(serializers.ModelSerializer):
     class Meta:
@@ -35,3 +36,8 @@ class WorkoutSessionSerializer(serializers.ModelSerializer):
         model = WorkoutSession
         fields = ['id', 'user', 'routine', 'date', 'duration', 'logs']
         read_only_fields = ['user']
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']

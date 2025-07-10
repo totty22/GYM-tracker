@@ -7,6 +7,11 @@ from .serializers import (
     WorkoutSessionSerializer, ExerciseLogSerializer
 )
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import authenticate, login, logout
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import UserSerializer
 
 class ExerciseViewSet(viewsets.ModelViewSet):
     queryset = Exercise.objects.all()
@@ -52,3 +57,26 @@ class ExerciseLogViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         return ExerciseLog.objects.filter(workout_session__user=self.request.user)
+    
+class LoginView(APIView):
+    permission_classes = [] # Permite el acceso a cualquiera
+
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return Response(UserSerializer(user).data)
+        return Response({'error': 'Invalid Credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+class LogoutView(APIView):
+    def post(self, request, *args, **kwargs):
+        logout(request)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class UserMeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        return Response(UserSerializer(request.user).data)
