@@ -67,9 +67,17 @@ const RoutineForm = ({ initialData, availableExercises, onSave }) => {
         const payload = {
             name,
             description,
-            // Preparamos el payload con la clave 'exercises'.
-            exercises: routineExercises.map(({ exerciseObject, ...rest }) => rest)
+            // Construimos un payload limpio sin el 'exerciseObject'
+            exercises: routineExercises.map(({ exerciseObject, ...rest }) => ({
+                sets: rest.sets,
+                reps: rest.reps,
+                rest_time_seconds: rest.rest_time_seconds,
+                order_in_routine: rest.order_in_routine,
+                exercise_id: rest.exercise, 
+            }))
         };
+        
+        // ¡Activamos la llamada a la función que guarda los datos!
         onSave(payload);
     };
 
