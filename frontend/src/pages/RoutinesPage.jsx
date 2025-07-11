@@ -1,4 +1,4 @@
-// frontend/src/pages/RoutinesPage.jsx
+// frontend/src/pages/RoutinesPage.jsx (VERSIÓN CON DELETE)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Button, Box } from '@mui/material';
@@ -35,6 +35,22 @@ const RoutinesPage = () => {
         navigate(`/workout/${routineId}`);
     };
 
+    // --- LÓGICA DE ELIMINACIÓN ---
+    const handleDeleteRoutine = async (routineId) => {
+        // Usamos window.confirm para una confirmación simple y efectiva
+        if (window.confirm('Are you sure you want to delete this routine? This action cannot be undone.')) {
+            const toastId = toast.loading('Deleting routine...');
+            try {
+                await axiosInstance.delete(`/api/routines/${routineId}/`);
+                toast.success('Routine deleted successfully!', { id: toastId });
+                // Volvemos a cargar las rutinas para que la lista se actualice
+                fetchRoutines();
+            } catch (error) {
+                toast.error('Failed to delete routine.', { id: toastId });
+            }
+        }
+    };
+
     return (
         <Container maxWidth="md">
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
@@ -51,6 +67,7 @@ const RoutinesPage = () => {
                 routines={routines} 
                 loading={loading} 
                 onSelectRoutine={handleSelectRoutine}
+                onDeleteRoutine={handleDeleteRoutine} // <-- Pasamos la función como prop
             />
         </Container>
     );

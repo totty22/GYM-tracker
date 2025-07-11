@@ -1,11 +1,15 @@
-// frontend/src/components/RoutineForm.jsx (VERSIÓN FINAL-FINAL)
+// frontend/src/components/RoutineForm.jsx (VERSIÓN CORREGIDA)
 
 import React, { useState, useEffect } from 'react';
 import {
     Box, TextField, Button, Typography, Card, CardContent, IconButton,
     List, ListItem, ListItemText, Autocomplete, Grid, Paper
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, ArrowUpward, ArrowDownward } from '@mui/icons-material';
+// --- CORRECCIÓN DE LAS IMPORTACIONES DE ICONOS ---
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 const RoutineForm = ({ initialData, availableExercises, onSave }) => {
     const [name, setName] = useState('');
@@ -16,19 +20,18 @@ const RoutineForm = ({ initialData, availableExercises, onSave }) => {
         if (initialData) {
             setName(initialData.name);
             setDescription(initialData.description);
-            // El backend ahora devuelve 'exercises', así que lo usamos aquí.
-            setRoutineExercises(initialData.exercises.map(ex => ({
-                ...ex,
-                exerciseObject: availableExercises.find(e => e.id === ex.exercise)
-            })));
+            setRoutineExercises(initialData.exercises);
+        } else {
+            setName('');
+            setDescription('');
+            setRoutineExercises([]);
         }
-    }, [initialData, availableExercises]);
+    }, [initialData]);
 
     const handleAddExercise = (exerciseObject) => {
-        if (exerciseObject && !routineExercises.some(re => re.exercise === exerciseObject.id)) {
+        if (exerciseObject && !routineExercises.some(re => re.exercise.id === exerciseObject.id)) {
             const newExercise = {
-                exercise: exerciseObject.id,
-                exerciseObject: exerciseObject,
+                exercise: exerciseObject,
                 sets: 3,
                 reps: '10',
                 rest_time_seconds: 60,
@@ -67,17 +70,14 @@ const RoutineForm = ({ initialData, availableExercises, onSave }) => {
         const payload = {
             name,
             description,
-            // Construimos un payload limpio sin el 'exerciseObject'
-            exercises: routineExercises.map(({ exerciseObject, ...rest }) => ({
-                sets: rest.sets,
-                reps: rest.reps,
-                rest_time_seconds: rest.rest_time_seconds,
-                order_in_routine: rest.order_in_routine,
-                exercise_id: rest.exercise, 
+            exercises: routineExercises.map(re => ({
+                exercise_id: re.exercise.id,
+                sets: parseInt(re.sets, 10),
+                reps: re.reps,
+                rest_time_seconds: parseInt(re.rest_time_seconds, 10),
+                order_in_routine: re.order_in_routine
             }))
         };
-        
-        // ¡Activamos la llamada a la función que guarda los datos!
         onSave(payload);
     };
 
@@ -105,15 +105,16 @@ const RoutineForm = ({ initialData, availableExercises, onSave }) => {
                             <Paper key={index} elevation={2} sx={{ mb: 2, p: 2 }}>
                                 <Grid container spacing={2} alignItems="center">
                                     <Grid item xs={12} md={4}>
-                                        <Typography variant="subtitle1">{re.exerciseObject?.name}</Typography>
-                                        <Typography variant="caption">{re.exerciseObject?.muscle_group}</Typography>
+                                        <Typography variant="subtitle1">{re.exercise?.name}</Typography>
+                                        <Typography variant="caption">{re.exercise?.muscle_group}</Typography>
                                     </Grid>
                                     <Grid item xs={6} md={2}><TextField label="Sets" type="number" value={re.sets} onChange={e => handleExerciseChange(index, 'sets', e.target.value)} /></Grid>
                                     <Grid item xs={6} md={2}><TextField label="Reps" value={re.reps} onChange={e => handleExerciseChange(index, 'reps', e.target.value)} /></Grid>
                                     <Grid item xs={12} md={2}><TextField label="Rest (s)" type="number" value={re.rest_time_seconds} onChange={e => handleExerciseChange(index, 'rest_time_seconds', e.target.value)} /></Grid>
                                     <Grid item xs={12} md={2}>
-                                        <IconButton onClick={() => handleMoveExercise(index, -1)} disabled={index === 0}><ArrowUpward /></IconButton>
-                                        <IconButton onClick={() => handleMoveExercise(index, 1)} disabled={index === routineExercises.length - 1}><ArrowDownward /></IconButton>
+                                        {/* --- CORRECCIÓN DEL NOMBRE DE LOS ICONOS --- */}
+                                        <IconButton onClick={() => handleMoveExercise(index, -1)} disabled={index === 0}><ArrowUpwardIcon /></IconButton>
+                                        <IconButton onClick={() => handleMoveExercise(index, 1)} disabled={index === routineExercises.length - 1}><ArrowDownwardIcon /></IconButton>
                                         <IconButton onClick={() => handleRemoveExercise(index)} color="error"><DeleteIcon /></IconButton>
                                     </Grid>
                                 </Grid>

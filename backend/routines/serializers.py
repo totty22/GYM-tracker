@@ -82,9 +82,12 @@ class ExerciseLogCreateSerializer(serializers.ModelSerializer):
     routine_exercise = serializers.PrimaryKeyRelatedField(queryset=RoutineExercise.objects.all())
     weight_achieved = serializers.DecimalField(max_digits=6, decimal_places=2)
 
+    notes = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
     class Meta:
         model = ExerciseLog
-        fields = ['workout_session', 'routine_exercise', 'weight_achieved']
+        # Y lo añadimos a la lista de campos.
+        fields = ['workout_session', 'routine_exercise', 'weight_achieved', 'notes']
 
     def validate(self, data):
         """
@@ -93,6 +96,9 @@ class ExerciseLogCreateSerializer(serializers.ModelSerializer):
         """
         workout_session = data.get('workout_session')
         request = self.context.get('request')
+
+        if not request or not hasattr(request, "user"):
+             raise serializers.ValidationError("Request context is missing user.")
 
         if workout_session.user != request.user:
             raise serializers.ValidationError("You do not have permission to log exercises for this session.")

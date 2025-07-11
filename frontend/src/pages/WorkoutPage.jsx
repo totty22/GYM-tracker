@@ -1,4 +1,4 @@
-// frontend/src/pages/WorkoutPage.jsx
+// frontend/src/pages/WorkoutPage.jsx (VERSIÓN FINAL Y CORREGIDA)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -13,29 +13,22 @@ const WorkoutPage = () => {
     const { routineId } = useParams();
     const navigate = useNavigate();
 
-    // Estado del componente
     const [routine, setRoutine] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [sessionId, setSessionId] = useState(null);
+    const [sessionId, setSessionId] = useState(null); // Inicia como null
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
     const [weight, setWeight] = useState('');
     const [isResting, setIsResting] = useState(false);
 
-    // Cargar datos y crear la sesión al montar la página
     useEffect(() => {
         const startWorkout = async () => {
             try {
-                // 1. Obtener detalles de la rutina
                 const routineRes = await axiosInstance.get(`/api/routines/${routineId}/`);
                 setRoutine(routineRes.data);
 
-                // 2. Crear una nueva sesión de entrenamiento
-                const sessionRes = await axiosInstance.post('/api/workout-sessions/', {
-                    routine: routineId,
-                });
-                setSessionId(sessionRes.data.id);
+                const sessionRes = await axiosInstance.post('/api/workout-sessions/', { routine: routineId });
+                setSessionId(sessionRes.data.id); // ¡Aquí se establece el ID!
             } catch (error) {
-                console.error("Error starting workout:", error.response?.data || error.message);
                 toast.error('Failed to start workout session.');
                 navigate('/routines');
             } finally {
@@ -45,7 +38,6 @@ const WorkoutPage = () => {
         startWorkout();
     }, [routineId, navigate]);
 
-    // Variables derivadas del estado para mayor claridad
     const currentExercise = routine?.exercises[currentExerciseIndex];
     const nextExercise = routine?.exercises[currentExerciseIndex + 1];
 
@@ -56,7 +48,7 @@ const WorkoutPage = () => {
         }
         try {
             await axiosInstance.post('/api/exercise-logs/', {
-                workout_session: sessionId,
+                workout_session: sessionId, // Ahora SÍ tiene un valor
                 routine_exercise: currentExercise.id,
                 weight_achieved: weight
             });
@@ -68,11 +60,13 @@ const WorkoutPage = () => {
                 handleFinishWorkout();
             }
         } catch (error) {
-            toast.error('Failed to log exercise.');
+            console.error("Backend Validation Error:", error.response?.data);
+            const errorMsg = error.response?.data ? Object.values(error.response.data).flat().join(' ') : 'Failed to log exercise.';
+            toast.error(errorMsg);
         }
     };
 
-    const handleFinishWorkout = useCallback(async () => {
+    const handleFinishWorkout = useCallback(() => {
         toast.success('Workout Finished! Well done!', { duration: 4000, icon: '🎉' });
         navigate('/routines');
     }, [navigate]);
@@ -88,7 +82,7 @@ const WorkoutPage = () => {
     }
     
     if (!routine || !currentExercise) {
-         return <Typography sx={{textAlign: 'center', mt: 4}}>Could not load workout details. Please try again.</Typography>;
+         return <Typography sx={{textAlign: 'center', mt: 4}}>Could not load workout details.</Typography>;
     }
 
     if (isResting) {
@@ -129,9 +123,15 @@ const WorkoutPage = () => {
                         variant="outlined"
                         sx={{ width: '50%', mb: 3 }}
                         autoFocus
+                        disabled={!sessionId} // <-- DESHABILITADO SI NO HAY SESIÓN
                     />
                     <br/>
-                    <Button variant="contained" size="large" onClick={handleCompleteExercise}>
+                    <Button 
+                        variant="contained" 
+                        size="large" 
+                        onClick={handleCompleteExercise}
+                        disabled={!sessionId} // <-- DESHABILITADO SI NO HAY SESIÓN
+                    >
                         Complete Exercise
                     </Button>
 

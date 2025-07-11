@@ -1,24 +1,17 @@
-// frontend/src/components/RoutineList.jsx
+// frontend/src/components/RoutineList.jsx (VERSIÓN CON DELETE)
 
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
 import { 
-    Box, 
-    Typography, 
-    List, 
-    ListItem, 
-    ListItemText, 
-    Card, 
-    CardContent,
-    CircularProgress,
-    Button,
-    Divider,
-    IconButton
+    Box, Typography, List, ListItem, ListItemText, Card, CardContent,
+    CircularProgress, Button, Divider, IconButton
 } from '@mui/material';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { Link as RouterLink } from 'react-router-dom';
 
-const RoutineList = ({ routines, loading, onSelectRoutine }) => {
+// Recibimos la nueva prop 'onDeleteRoutine'
+const RoutineList = ({ routines, loading, onSelectRoutine, onDeleteRoutine }) => {
     if (loading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
@@ -39,21 +32,20 @@ const RoutineList = ({ routines, loading, onSelectRoutine }) => {
                             <React.Fragment key={routine.id}>
                                 <ListItem 
                                     secondaryAction={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <IconButton 
-                                                component={RouterLink} 
-                                                to={`/routines/${routine.id}`} 
-                                                aria-label="edit"
-                                            >
+                                        <Box>
+                                            <IconButton component={RouterLink} to={`/routines/${routine.id}`} sx={{ mr: 1 }}>
                                                 <EditIcon />
+                                            </IconButton>
+                                            {/* --- BOTÓN DE ELIMINAR --- */}
+                                            <IconButton onClick={() => onDeleteRoutine(routine.id)} sx={{ mr: 1 }}>
+                                                <DeleteIcon color="error" />
                                             </IconButton>
                                             <Button 
                                                 variant="contained" 
-                                                size="small"
                                                 startIcon={<FitnessCenterIcon />}
                                                 onClick={() => onSelectRoutine(routine.id)}
                                             >
-                                                Start
+                                                Start Workout
                                             </Button>
                                         </Box>
                                     }
@@ -68,9 +60,8 @@ const RoutineList = ({ routines, loading, onSelectRoutine }) => {
                         ))}
                     </List>
                 ) : (
-                    <Typography variant="body1" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
-                        You haven't created any routines yet. <br />
-                        Click "Create New Routine" to get started.
+                    <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
+                        You haven't created any routines yet. Use the form above to get started.
                     </Typography>
                 )}
             </CardContent>

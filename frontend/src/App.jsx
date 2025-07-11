@@ -14,7 +14,8 @@ import HomePage from './pages/HomePage';
 import RoutinesPage from './pages/RoutinesPage';
 import WorkoutPage from './pages/WorkoutPage';
 import LoginPage from './pages/LoginPage';
-import RoutineEditPage from './pages/RoutineEditPage'; // <--- Importante
+import RoutineEditPage from './pages/RoutineEditPage';
+import ExercisesPage from './pages/ExercisesPage'; // <-- 1. Importar la nueva página
 import PrivateRoute from './components/PrivateRoute';
 
 // Componente de Navegación
@@ -32,6 +33,7 @@ function Navigation() {
         </Typography>
         <Button color="inherit" component={RouterLink} to="/">Home</Button>
         <Button color="inherit" component={RouterLink} to="/routines">My Routines</Button>
+        <Button color="inherit" component={RouterLink} to="/exercises">Exercises</Button> {/* <-- 2. Añadir botón de navegación */}
         {isAuthenticated && user ? (
           <>
             <Typography sx={{ mx: 2 }}>Welcome, {user.username}!</Typography>
@@ -60,6 +62,7 @@ function AppLayout() {
           <Route element={<PrivateRoute />}>
             <Route path="/routines" element={<RoutinesPage />} />
             <Route path="/routines/:id" element={<RoutineEditPage />} />
+            <Route path="/exercises" element={<ExercisesPage />} /> {/* <-- 3. Añadir la nueva ruta */}
             <Route path="/workout/:routineId" element={<WorkoutPage />} />
           </Route>
           

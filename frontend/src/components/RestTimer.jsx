@@ -1,65 +1,76 @@
 // frontend/src/components/RestTimer.jsx
 
-import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, CircularProgress, Container } from '@mui/material';
+import React from 'react';
+import { Box, Typography, Button, CircularProgress } from '@mui/material';
+import { useTimer } from '../hooks/useTimer';
 
 const RestTimer = ({ restTime, nextExerciseName, onFinish }) => {
-    const [timeLeft, setTimeLeft] = useState(restTime);
-    const progress = (timeLeft / restTime) * 100;
+    // Usamos nuestro custom hook para la lógica.
+    const secondsLeft = useTimer(restTime, onFinish);
 
-    useEffect(() => {
-        if (timeLeft <= 0) {
-            onFinish();
-            return;
-        }
+    // Calculamos el progreso para la barra circular (de 0 a 100)
+    const progress = (secondsLeft / restTime) * 100;
 
-        const timerId = setInterval(() => {
-            setTimeLeft(prevTime => prevTime - 1);
-        }, 1000);
-
-        // Limpia el intervalo cuando el componente se desmonta para evitar fugas de memoria
-        return () => clearInterval(timerId);
-    }, [timeLeft, onFinish]);
-
-    const formatTime = (seconds) => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-    };
+    // Formateamos los segundos a un formato MM:SS para mostrar
+    const minutes = Math.floor(secondsLeft / 60);
+    const seconds = secondsLeft % 60;
+    const formattedTime = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 
     return (
-        <Container maxWidth="sm">
-            <Box sx={{ textAlign: 'center', my: 8 }}>
-                <Typography variant="h4" color="text.secondary" gutterBottom>
-                    REST
-                </Typography>
-                
-                <Box sx={{ position: 'relative', display: 'inline-flex', my: 4 }}>
-                    <CircularProgress variant="determinate" value={100} size={200} sx={{color: 'grey.700'}} />
-                    <CircularProgress variant="determinate" value={progress} size={200} sx={{ position: 'absolute', left: 0 }} />
-                    <Box
-                        sx={{
-                            top: 0, left: 0, bottom: 0, right: 0,
-                            position: 'absolute',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <Typography variant="h2" component="div" color="text.primary">
-                            {formatTime(timeLeft)}
-                        </Typography>
-                    </Box>
-                </Box>
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '70vh',
+                textAlign: 'center'
+            }}
+        >
+            <Typography variant="h4" gutterBottom>
+                REST
+            </Typography>
 
-                <Typography variant="h5" gutterBottom>
-                    Up Next: {nextExerciseName}
-                </Typography>
-                <Button variant="outlined" sx={{ mt: 3 }} onClick={onFinish}>
-                    Skip Rest
-                </Button>
+            {/* Círculo de progreso visual */}
+            <Box sx={{ position: 'relative', display: 'inline-flex', my: 4 }}>
+                <CircularProgress
+                    variant="determinate"
+                    value={progress}
+                    size={200}
+                    thickness={4}
+                />
+                <Box
+                    sx={{
+                        top: 0,
+                        left: 0,
+                        bottom: 0,
+                        right: 0,
+                        position: 'absolute',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    <Typography variant="h2" component="div" color="text.primary">
+                        {formattedTime}
+                    </Typography>
+                </Box>
             </Box>
-        </Container>
+
+            <Typography variant="h5" color="text.secondary">
+                Up Next: {nextExerciseName}
+            </Typography>
+
+            {/* Botón para saltar el descanso */}
+            <Button
+                variant="outlined"
+                color="secondary"
+                onClick={onFinish} // Llamamos a onFinish directamente para saltar
+                sx={{ mt: 4 }}
+            >
+                Skip Rest
+            </Button>
+        </Box>
     );
 };
 
