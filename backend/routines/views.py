@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from .models import Exercise, Routine, RoutineExercise, WorkoutSession, ExerciseLog, User
 from .serializers import (
@@ -15,9 +16,10 @@ from .serializers import (
     WorkoutSessionSerializer,
     WorkoutSessionCreateSerializer,
     ExerciseLogSerializer,
-    ExerciseLogCreateSerializer, # <-- ¡AQUÍ ESTÁ LA CORRECCIÓN! Añadido a la importación.
+    ExerciseLogCreateSerializer,
     UserSerializer
 )
+from .permissions import IsAdminOrReadOnly
 
 class LoginView(APIView):
     permission_classes = [] 
@@ -43,8 +45,9 @@ class UserMeView(APIView):
 class ExerciseViewSet(viewsets.ModelViewSet):
     queryset = Exercise.objects.all()
     serializer_class = ExerciseSerializer
-    permission_classes = [IsAuthenticated]
-
+    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
+    parser_classes = [MultiPartParser, FormParser]
+    
     @action(detail=True, methods=['get'], url_path='history')
     def history(self, request, pk=None):
         exercise = self.get_object()
@@ -56,6 +59,10 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             return Response([], status=status.HTTP_200_OK)
         serializer = ExerciseLogSerializer(logs, many=True)
         return Response(serializer.data)
+    
+    #def perform_create(self, serializer):
+        # Aunque solo los admins pueden crear, es bueno saber quién fue.
+    #    serializer.save(created_by=self.request.user if 'created_by' in serializer.validated_data else None)
 
 
 class RoutineViewSet(viewsets.ModelViewSet):

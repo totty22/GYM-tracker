@@ -1,9 +1,10 @@
-// frontend/src/pages/WorkoutPage.jsx (VERSIÓN FINAL Y CORREGIDA)
+// frontend/src/pages/WorkoutPage.jsx (VERSIÓN CON IMAGEN)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    Box, Typography, Container, Card, CardContent, Button, Grid, TextField, CircularProgress
+    Box, Typography, Container, Card, CardContent, Button, Grid, 
+    TextField, CircularProgress, CardMedia // <-- Importar CardMedia
 } from '@mui/material';
 import axiosInstance from '../api/axios';
 import toast from 'react-hot-toast';
@@ -15,7 +16,7 @@ const WorkoutPage = () => {
 
     const [routine, setRoutine] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [sessionId, setSessionId] = useState(null); // Inicia como null
+    const [sessionId, setSessionId] = useState(null);
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
     const [weight, setWeight] = useState('');
     const [isResting, setIsResting] = useState(false);
@@ -25,9 +26,8 @@ const WorkoutPage = () => {
             try {
                 const routineRes = await axiosInstance.get(`/api/routines/${routineId}/`);
                 setRoutine(routineRes.data);
-
                 const sessionRes = await axiosInstance.post('/api/workout-sessions/', { routine: routineId });
-                setSessionId(sessionRes.data.id); // ¡Aquí se establece el ID!
+                setSessionId(sessionRes.data.id);
             } catch (error) {
                 toast.error('Failed to start workout session.');
                 navigate('/routines');
@@ -48,7 +48,7 @@ const WorkoutPage = () => {
         }
         try {
             await axiosInstance.post('/api/exercise-logs/', {
-                workout_session: sessionId, // Ahora SÍ tiene un valor
+                workout_session: sessionId,
                 routine_exercise: currentExercise.id,
                 weight_achieved: weight
             });
@@ -98,6 +98,21 @@ const WorkoutPage = () => {
     return (
         <Container maxWidth="md">
             <Card>
+                {/* --- CAMBIO AQUÍ: AÑADIMOS LA IMAGEN DEL EJERCICIO --- */}
+                {/* Renderizado condicional: solo mostrar si la imagen existe */}
+                {currentExercise.exercise.image && (
+                    <CardMedia
+                        component="img"
+                        sx={{
+                            height: 250, // Una altura fija para la imagen
+                            objectFit: 'contain', // Asegura que se vea la imagen completa, no recortada
+                            mt: 2, // Margen superior
+                        }}
+                        image={currentExercise.exercise.image}
+                        alt={currentExercise.exercise.name}
+                    />
+                )}
+                
                 <CardContent sx={{ textAlign: 'center' }}>
                     <Typography variant="caption" color="text.secondary">CURRENT EXERCISE</Typography>
                     <Typography variant="h2" component="h1" gutterBottom>
@@ -123,14 +138,14 @@ const WorkoutPage = () => {
                         variant="outlined"
                         sx={{ width: '50%', mb: 3 }}
                         autoFocus
-                        disabled={!sessionId} // <-- DESHABILITADO SI NO HAY SESIÓN
+                        disabled={!sessionId}
                     />
                     <br/>
                     <Button 
                         variant="contained" 
                         size="large" 
                         onClick={handleCompleteExercise}
-                        disabled={!sessionId} // <-- DESHABILITADO SI NO HAY SESIÓN
+                        disabled={!sessionId}
                     >
                         Complete Exercise
                     </Button>

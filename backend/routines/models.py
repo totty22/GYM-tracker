@@ -5,7 +5,8 @@ class Exercise(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
     muscle_group = models.CharField(max_length=50, blank=True)
-
+    image = models.ImageField(upload_to='exercise_images/', blank=True, null=True)
+    
     def __str__(self):
         return self.name
 

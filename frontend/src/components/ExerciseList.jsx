@@ -2,8 +2,9 @@
 
 import React from 'react';
 import {
-    List, ListItem, ListItemText, IconButton, Box, CircularProgress, Typography, Paper, Divider
-} from '@mui/material';
+    List, ListItem, ListItemText, IconButton, Box, CircularProgress, 
+    Typography, Paper, Divider, ListItemAvatar, Avatar 
+} from '@mui/material'; // <-- Se añade ListItemAvatar y Avatar
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 
 const ExerciseList = ({ exercises, loading, onEdit, onDelete }) => {
@@ -29,6 +30,12 @@ const ExerciseList = ({ exercises, loading, onEdit, onDelete }) => {
                 {exercises.map((exercise, index) => (
                     <React.Fragment key={exercise.id}>
                         <ListItem>
+                            {/* --- CAMBIO AQUÍ: AÑADIMOS EL AVATAR PARA LA IMAGEN --- */}
+                            <ListItemAvatar>
+                                {/* El componente Avatar mostrará la imagen si existe,
+                                    o un icono genérico si exercise.image es null */}
+                                <Avatar src={exercise.image} />
+                            </ListItemAvatar>
                             <ListItemText
                                 primary={exercise.name}
                                 secondary={exercise.muscle_group || 'No muscle group specified'}

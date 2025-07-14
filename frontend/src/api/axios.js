@@ -1,15 +1,13 @@
-// frontend/src/api/axios.js (VERSIÓN FINAL Y ROBUSTA CON INTERCEPTORES)
+// frontend/src/api/axios.js (VERSIÓN FINAL Y CORREGIDA PARA SUBIDA DE ARCHIVOS)
 
 import axios from 'axios';
 
-// Función auxiliar para obtener el valor de una cookie por su nombre
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');
         for (let i = 0; i < cookies.length; i++) {
             const cookie = cookies[i].trim();
-            // ¿Comienza la cadena de la cookie con el nombre que queremos?
             if (cookie.substring(0, name.length + 1) === (name + '=')) {
                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                 break;
@@ -19,33 +17,38 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Creamos la instancia de Axios. Nota que ya NO fijamos el X-CSRFToken aquí.
+// La configuración inicial sigue igual
 const axiosInstance = axios.create({
-    baseURL: '/', // El proxy de Vite se encargará de redirigir a http://localhost:8000
+    baseURL: '/',
     timeout: 5000,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
     },
-    withCredentials: true, // Crucial para que el navegador envíe y reciba cookies
+    withCredentials: true,
 });
 
-// === EL CAMBIO MÁGICO: EL INTERCEPTOR DE PETICIONES ===
-// Esto se ejecuta ANTES de que cada petición sea enviada.
+
+// --- INTERCEPTOR DE PETICIONES MEJORADO ---
 axiosInstance.interceptors.request.use(
     (config) => {
-        // Obtenemos el token CSRF MÁS RECIENTE de las cookies en cada petición.
         const csrfToken = getCookie('csrftoken');
-        
-        // Si el token existe, lo añadimos a las cabeceras de esta petición específica.
         if (csrfToken) {
             config.headers['X-CSRFToken'] = csrfToken;
+        }
+
+        // --- ¡LA CORRECCIÓN MÁGICA ESTÁ AQUÍ! ---
+        // Si los datos de la petición son una instancia de FormData (es decir, una subida de archivo),
+        // eliminamos la cabecera 'Content-Type'.
+        // Esto obliga al navegador a establecerla correctamente por sí mismo,
+        // incluyendo el 'boundary' necesario para multipart.
+        if (config.data instanceof FormData) {
+            delete config.headers['Content-Type'];
         }
         
         return config;
     },
     (error) => {
-        // Si hay un error durante la configuración de la petición, lo rechazamos.
         return Promise.reject(error);
     }
 );

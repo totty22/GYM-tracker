@@ -13,7 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
 class ExerciseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Exercise
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'muscle_group', 'image']
 
 
 class RoutineExerciseSerializer(serializers.ModelSerializer):
