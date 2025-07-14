@@ -1,9 +1,10 @@
-// frontend/src/pages/RoutinesPage.jsx (VERSIÓN CON DELETE)
+// frontend/src/pages/RoutinesPage.jsx
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Button, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
+import { useWorkout } from '../context/WorkoutContext';
 
 import axiosInstance from '../api/axios';
 import RoutineList from '../components/RoutineList';
@@ -13,6 +14,7 @@ const RoutinesPage = () => {
     const [routines, setRoutines] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const { startWorkout } = useWorkout(); // Usamos el contexto para iniciar el workout
 
     const fetchRoutines = useCallback(async () => {
         setLoading(true);
@@ -31,20 +33,18 @@ const RoutinesPage = () => {
         fetchRoutines();
     }, [fetchRoutines]);
 
+    // La función ahora solo pasa el ID de la rutina al contexto
     const handleSelectRoutine = (routineId) => {
-        navigate(`/workout/${routineId}`);
+        startWorkout(routineId);
     };
 
-    // --- LÓGICA DE ELIMINACIÓN ---
     const handleDeleteRoutine = async (routineId) => {
-        // Usamos window.confirm para una confirmación simple y efectiva
         if (window.confirm('Are you sure you want to delete this routine? This action cannot be undone.')) {
             const toastId = toast.loading('Deleting routine...');
             try {
                 await axiosInstance.delete(`/api/routines/${routineId}/`);
                 toast.success('Routine deleted successfully!', { id: toastId });
-                // Volvemos a cargar las rutinas para que la lista se actualice
-                fetchRoutines();
+                fetchRoutines(); // Recargar la lista para reflejar el cambio
             } catch (error) {
                 toast.error('Failed to delete routine.', { id: toastId });
             }
@@ -67,7 +67,7 @@ const RoutinesPage = () => {
                 routines={routines} 
                 loading={loading} 
                 onSelectRoutine={handleSelectRoutine}
-                onDeleteRoutine={handleDeleteRoutine} // <-- Pasamos la función como prop
+                onDeleteRoutine={handleDeleteRoutine}
             />
         </Container>
     );
