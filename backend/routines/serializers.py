@@ -42,6 +42,8 @@ class RoutineExerciseSerializer(serializers.ModelSerializer):
 
 
 class RoutineSerializer(serializers.ModelSerializer):
+    # Cuando este serializer se anida para lectura, solo se usará la parte de lectura.
+    # El campo 'exercises' usa el serializer de arriba, que maneja bien tanto lectura como escritura.
     exercises = RoutineExerciseSerializer(many=True)
 
     class Meta:
@@ -68,52 +70,50 @@ class RoutineSerializer(serializers.ModelSerializer):
 
 
 class ExerciseLogSerializer(serializers.ModelSerializer):
-    """ Serializer para mostrar los logs de ejercicios. """
+    """ Serializer para mostrar los logs de ejercicios de forma detallada. """
+    # En lugar de 'depth = 1', anidamos explícitamente para un mejor control.
+    routine_exercise = RoutineExerciseSerializer(read_only=True)
     class Meta:
         model = ExerciseLog
-        fields = '__all__'
-        # Profundidad 1 para mostrar detalles del ejercicio y sesión, en lugar de solo IDs
-        depth = 1 
+        fields = ['id', 'workout_session', 'routine_exercise', 'weight_achieved', 'notes']
+
 
 class ExerciseLogCreateSerializer(serializers.ModelSerializer):
     """ Serializer específico para crear un nuevo log de ejercicio. """
-    # Hacemos explícitos los campos que el frontend debe enviar.
     workout_session = serializers.PrimaryKeyRelatedField(queryset=WorkoutSession.objects.all())
     routine_exercise = serializers.PrimaryKeyRelatedField(queryset=RoutineExercise.objects.all())
     weight_achieved = serializers.DecimalField(max_digits=6, decimal_places=2)
-
     notes = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = ExerciseLog
-        # Y lo añadimos a la lista de campos.
         fields = ['workout_session', 'routine_exercise', 'weight_achieved', 'notes']
 
     def validate(self, data):
-        """
-        Validación a nivel de objeto para asegurar que el usuario que crea el log
-        es el propietario de la sesión de entrenamiento. Medida de seguridad clave.
-        """
         workout_session = data.get('workout_session')
         request = self.context.get('request')
-
         if not request or not hasattr(request, "user"):
              raise serializers.ValidationError("Request context is missing user.")
-
         if workout_session.user != request.user:
             raise serializers.ValidationError("You do not have permission to log exercises for this session.")
-        
         return data
 
-# Asegúrate de que este serializer también existe
+
 class WorkoutSessionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkoutSession
         fields = ['routine']
 
 
+# --- ¡AQUÍ ESTÁ LA CORRECCIÓN PRINCIPAL! ---
 class WorkoutSessionSerializer(serializers.ModelSerializer):
+    """
+    Serializer para MOSTRAR una sesión de workout, con todos los detalles anidados.
+    """
     logs = ExerciseLogSerializer(many=True, read_only=True)
+    # Anidamos el RoutineSerializer para obtener el nombre y otros detalles de la rutina.
+    routine = RoutineSerializer(read_only=True) 
+
     class Meta:
         model = WorkoutSession
         fields = ['id', 'user', 'routine', 'date', 'duration', 'logs']

@@ -17,6 +17,7 @@ import WorkoutPage from './pages/WorkoutPage';
 import LoginPage from './pages/LoginPage';
 import RoutineEditPage from './pages/RoutineEditPage';
 import ExercisesPage from './pages/ExercisesPage';
+import HistoryPage from './pages/HistoryPage'; // <-- 1. Importar la nueva página
 import PrivateRoute from './components/PrivateRoute';
 
 function Navigation() {
@@ -40,18 +41,17 @@ function Navigation() {
           </RouterLink>
         </Typography>
         <Button color="inherit" component={RouterLink} to="/">Home</Button>
-        {/* Solo mostrar estos botones si el usuario está autenticado */}
+        
         {isAuthenticated && (
           <>
             <Button color="inherit" component={RouterLink} to="/routines">My Routines</Button>
             <Button color="inherit" component={RouterLink} to="/exercises">Exercises</Button>
+            <Button color="inherit" component={RouterLink} to="/history">History</Button> {/* <-- 2. Añadir botón de navegación */}
           </>
         )}
         
         <Box sx={{ flexGrow: 1 }} />
         
-        {/* --- LA CORRECCIÓN ESTÁ AQUÍ --- */}
-        {/* El botón de Active Workout ahora solo se renderiza si el usuario está autenticado */}
         {isAuthenticated && (
           <Button
               variant="contained"
@@ -78,7 +78,6 @@ function Navigation() {
   );
 }
 
-// ... (El resto del archivo App.jsx, AppLayout y App no necesita cambios)
 function AppLayout() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -91,6 +90,7 @@ function AppLayout() {
             <Route path="/routines" element={<RoutinesPage />} />
             <Route path="/routines/:id" element={<RoutineEditPage />} />
             <Route path="/exercises" element={<ExercisesPage />} />
+            <Route path="/history" element={<HistoryPage />} /> {/* <-- 3. Añadir la nueva ruta */}
             <Route path="/workout/:routineId" element={<WorkoutPage />} />
           </Route>
           <Route path="*" element={ <Typography>404 - Page Not Found</Typography> } /> 
