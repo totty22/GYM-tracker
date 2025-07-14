@@ -1,6 +1,6 @@
-// frontend/src/pages/WorkoutPage.jsx
+// frontend/src/pages/WorkoutPage.jsx (VERSIÓN SIMPLIFICADA Y CORREGIDA)
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Box, Typography, Container, Card, CardContent, Button, Grid, TextField, CardMedia
@@ -15,20 +15,33 @@ const WorkoutPage = () => {
     const { workoutState, advanceToNext, endWorkout } = useWorkout();
     const [weight, setWeight] = useState('');
 
-    // Redirigir si no hay workout activo
+    // Si no hay estado de workout, no deberíamos estar en esta página.
+    // PrivateRoute o la lógica de navegación deberían haberlo prevenido.
+    // Este useEffect es una salvaguarda final.
     useEffect(() => {
         if (!workoutState?.isActive) {
             navigate('/routines');
         }
     }, [workoutState, navigate]);
 
-    if (!workoutState) return null; // Si no hay estado, no renderizar nada
+    const currentExercise = workoutState?.routineDetails?.exercises[workoutState.currentExerciseIndex];
 
-    const { routineDetails, currentExerciseIndex, currentSet, isResting, sessionId } = workoutState;
-    const currentExercise = routineDetails.exercises[currentExerciseIndex];
+    // Efecto para pre-rellenar el peso
+    useEffect(() => {
+        if (currentExercise) {
+            setWeight(currentExercise.last_weight_achieved || '');
+        }
+    }, [currentExercise]);
+
+    // Si el estado aún no está listo o es inválido, no renderizamos nada hasta que el useEffect nos redirija.
+    if (!workoutState || !currentExercise) {
+        return null; 
+    }
+
+    const { currentSet, isResting, sessionId } = workoutState;
     const totalSets = parseInt(currentExercise.sets, 10);
     const isLastSet = currentSet === totalSets;
-    const nextExercise = routineDetails.exercises[currentExerciseIndex + 1];
+    const nextExercise = workoutState.routineDetails.exercises[workoutState.currentExerciseIndex + 1];
 
     const handleCompleteSet = async () => {
         if (isLastSet) {
@@ -41,13 +54,12 @@ const WorkoutPage = () => {
                     weight_achieved: weightToSend,
                 });
                 toast.success(`${currentExercise.exercise.name} completed!`, { id: toastId });
-                setWeight('');
                 advanceToNext();
             } catch (error) {
+                console.error("Backend Validation Error:", error.response?.data);
                 toast.error('Failed to log exercise.', { id: toastId });
             }
         } else {
-            setWeight('');
             advanceToNext();
         }
     };
