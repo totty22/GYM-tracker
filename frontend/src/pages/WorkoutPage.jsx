@@ -1,4 +1,4 @@
-// frontend/src/pages/WorkoutPage.jsx (VERSIÓN CON LAYOUT DE FORMULARIO MEJORADO)
+// frontend/src/pages/WorkoutPage.jsx (VERSIÓN RESPONSIVE)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -70,29 +70,55 @@ const WorkoutPage = () => {
         <Container maxWidth="md">
             <Card>
                 {currentExercise.exercise.image && (
-                    <CardMedia component="img" sx={{ height: 250, objectFit: 'contain', mt: 2 }} image={currentExercise.exercise.image} alt={currentExercise.exercise.name} />
+                    <CardMedia 
+                        component="img" 
+                        sx={{ 
+                            height: { xs: 180, sm: 250 }, // Altura más pequeña en móviles
+                            objectFit: 'contain', 
+                            mt: 2 
+                        }} 
+                        image={currentExercise.exercise.image} 
+                        alt={currentExercise.exercise.name} 
+                    />
                 )}
                 <CardContent sx={{ textAlign: 'center' }}>
                     <Typography variant="caption" color="text.secondary">CURRENT EXERCISE</Typography>
-                    <Typography variant="h2" component="h1" gutterBottom>{currentExercise.exercise.name}</Typography>
-                    <Grid container spacing={4} sx={{ my: 4 }} justifyContent="center">
-                        <Grid item xs={4}><Typography variant="h4">SET {currentSet}/{totalSets}</Typography></Grid>
-                        <Grid item xs={4}><Typography variant="h4">{currentExercise.reps} REPS</Typography></Grid>
-                        <Grid item xs={4}>
+                    <Typography 
+                        variant="h2" 
+                        component="h1" 
+                        gutterBottom
+                        sx={{ fontSize: { xs: '2.5rem', sm: '3.5rem' } }} // Fuente más pequeña en móviles
+                    >
+                        {currentExercise.exercise.name}
+                    </Typography>
+
+                    <Grid container spacing={{ xs: 2, sm: 4 }} sx={{ my: 4 }} justifyContent="center">
+                        <Grid item xs={12} sm={4}>
+                            <Typography variant="h4" sx={{ fontSize: { xs: '1.8rem', sm: '2.125rem' } }}>
+                                SET {currentSet}/{totalSets}
+                            </Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                             <Typography variant="h4" sx={{ fontSize: { xs: '1.8rem', sm: '2.125rem' } }}>
+                                {currentExercise.reps} REPS
+                            </Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
                             <Typography variant="body1" color="text.secondary">LAST TIME</Typography>
-                            <Typography variant="h5">{currentExercise.last_weight_achieved ? `${currentExercise.last_weight_achieved} kg` : 'N/A'}</Typography>
+                            <Typography variant="h5" sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
+                                {currentExercise.last_weight_achieved ? `${currentExercise.last_weight_achieved} kg` : 'N/A'}
+                            </Typography>
                         </Grid>
                     </Grid>
 
-                    {/* --- ZONA DE ENTRADA DE DATOS MEJORADA --- */}
                     <Box 
                         sx={{ 
-                            width: '60%', 
-                            mx: 'auto', // Centra el contenedor
+                            width: { xs: '95%', sm: '70%', md: '60%' }, // Más ancho en móviles
+                            mx: 'auto', 
                             display: 'flex', 
                             flexDirection: 'column',
-                            gap: 2, // Añade espacio entre los campos
-                            mb: 3 // Margen inferior antes del botón
+                            gap: 2, 
+                            mb: 3
                         }}
                     >
                         <TextField 
