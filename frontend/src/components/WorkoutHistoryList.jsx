@@ -24,20 +24,16 @@ const WorkoutHistoryList = ({ sessions }) => {
                         aria-controls={`panel${session.id}-content`}
                         id={`panel${session.id}-header`}
                     >
-                        {/* Resumen de la sesión */}
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                             <Typography variant="h6">
-                                {/* El nombre de la rutina está en session.routine.name gracias a la serialización */}
                                 {session.routine?.name || 'Workout Session'}
                             </Typography>
                             <Typography sx={{ color: 'text.secondary' }}>
-                                {/* Formateamos la fecha para que sea más legible */}
                                 {new Date(session.date).toLocaleDateString()}
                             </Typography>
                         </Box>
                     </AccordionSummary>
                     <AccordionDetails>
-                        {/* Detalles de la sesión (los logs) */}
                         <Typography variant="subtitle1" gutterBottom>Exercises Logged:</Typography>
                         <List>
                             {session.logs && session.logs.length > 0 ? (
@@ -46,7 +42,20 @@ const WorkoutHistoryList = ({ sessions }) => {
                                         <ListItem>
                                             <ListItemText
                                                 primary={log.routine_exercise.exercise.name}
-                                                secondary={`Weight: ${log.weight_achieved} kg`}
+                                                // --- CAMBIO AQUÍ: MOSTRAR PESO Y NOTAS ---
+                                                secondary={
+                                                    <React.Fragment>
+                                                        <Typography component="span" variant="body2" color="text.primary">
+                                                            Weight: {log.weight_achieved} kg
+                                                        </Typography>
+                                                        {/* Renderizado condicional: mostrar notas solo si existen */}
+                                                        {log.notes && (
+                                                            <Typography component="span" variant="body2" sx={{ display: 'block', fontStyle: 'italic', mt: 0.5 }}>
+                                                                Note: {log.notes}
+                                                            </Typography>
+                                                        )}
+                                                    </React.Fragment>
+                                                }
                                             />
                                         </ListItem>
                                         {index < session.logs.length - 1 && <Divider />}

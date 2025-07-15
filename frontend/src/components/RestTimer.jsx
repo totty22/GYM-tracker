@@ -6,7 +6,12 @@ import { useWorkout } from '../context/WorkoutContext';
 
 const RestTimer = () => {
     const { workoutState, finishRest } = useWorkout();
-    const { restUntil, routineDetails, currentExerciseIndex, currentSet } = workoutState;
+    
+    if (!workoutState || !workoutState.isResting) {
+        return null;
+    }
+    
+    const { restUntil, restDuration, routineDetails, currentExerciseIndex, currentSet } = workoutState;
     
     const calculateTimeLeft = () => {
         if (!restUntil) return 0;
@@ -23,25 +28,39 @@ const RestTimer = () => {
                 clearInterval(timer);
                 finishRest();
             }
-        }, 500); // Actualizar cada medio segundo para más suavidad
+        }, 500);
 
         return () => clearInterval(timer);
     }, [restUntil, finishRest]);
     
-    const totalRestTime = routineDetails.exercises[currentExerciseIndex].rest_time_seconds;
-    const progress = (secondsLeft / totalRestTime) * 100;
+    const progress = (secondsLeft / (restDuration || 1)) * 100; // Usar restDuration
     
-    // Lógica para saber qué viene después
-    const currentExercise = routineDetails.exercises[currentExerciseIndex];
-    const isLastSet = currentSet === parseInt(currentExercise.sets, 10);
-    const nextExercise = routineDetails.exercises[currentExerciseIndex + 1];
-    const nextText = isLastSet 
-        ? (nextExercise?.exercise.name || 'Last one!') 
-        : `Set ${currentSet + 1}`;
+    // --- LÓGICA RESTAURADA Y CORREGIDA ---
+    const nextExercise = routineDetails.exercises[currentExerciseIndex];
+    let nextText = '';
 
+    if (currentSet === 1) {
+        // Si el próximo set es el 1, significa que estamos empezando un nuevo ejercicio.
+        nextText = `Next Exercise: ${nextExercise.exercise.name}`;
+    } else {
+        // Si no, es solo el siguiente set del mismo ejercicio.
+        nextText = `Set ${currentSet} of ${nextExercise.exercise.name}`;
+    }
+    
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '70vh', textAlign: 'center' }}>
-            <Typography variant="h4" gutterBottom>REST</Typography>
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '70vh',
+                textAlign: 'center'
+            }}
+        >
+            <Typography variant="h4" gutterBottom>
+                REST
+            </Typography>
             <Box sx={{ position: 'relative', display: 'inline-flex', my: 4 }}>
                 <CircularProgress variant="determinate" value={100} size={200} thickness={2} sx={{ color: 'grey.800' }} />
                 <CircularProgress variant="determinate" value={progress} size={200} thickness={4} sx={{ position: 'absolute', left: 0 }} />
@@ -49,8 +68,15 @@ const RestTimer = () => {
                     <Typography variant="h2">{secondsLeft}</Typography>
                 </Box>
             </Box>
-            <Typography variant="h5" color="text.secondary">Up Next: {nextText}</Typography>
-            <Button variant="outlined" color="secondary" onClick={finishRest} sx={{ mt: 4 }}>
+            <Typography variant="h5" color="text.secondary">
+                Up Next: {nextText}
+            </Typography>
+            <Button
+                variant="outlined"
+                color="secondary"
+                onClick={finishRest}
+                sx={{ mt: 4 }}
+            >
                 Skip Rest
             </Button>
         </Box>

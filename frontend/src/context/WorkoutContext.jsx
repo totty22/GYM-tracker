@@ -1,4 +1,4 @@
-// frontend/src/context/WorkoutContext.jsx (VERSIÓN CORREGIDA Y MÁS ROBUSTA)
+// frontend/src/context/WorkoutContext.jsx
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -32,7 +32,6 @@ export const WorkoutProvider = ({ children }) => {
         }
     }, [workoutState]);
     
-    // --- FUNCIÓN 'startWorkout' REFACTORIZADA ---
     const startWorkout = async (selectedRoutineId) => {
         if (workoutState) {
             toast.error('A workout is already in progress.');
@@ -42,11 +41,8 @@ export const WorkoutProvider = ({ children }) => {
         
         const toastId = toast.loading('Preparing your workout...');
         try {
-            // Hacemos dos llamadas a la API en paralelo para mayor eficiencia
             const [sessionRes, routineRes] = await Promise.all([
-                // 1. Crear la sesión de entrenamiento
                 axiosInstance.post('/api/workout-sessions/', { routine: selectedRoutineId }),
-                // 2. Obtener los detalles FRESCOS y actualizados de la rutina
                 axiosInstance.get(`/api/routines/${selectedRoutineId}/`)
             ]);
             
@@ -54,11 +50,12 @@ export const WorkoutProvider = ({ children }) => {
                 isActive: true,
                 sessionId: sessionRes.data.id,
                 routineId: selectedRoutineId,
-                routineDetails: routineRes.data, // Usamos los datos frescos
+                routineDetails: routineRes.data,
                 currentExerciseIndex: 0,
                 currentSet: 1,
                 isResting: false,
                 restUntil: null,
+                restDuration: 0, // <-- Inicializar restDuration
             });
             
             toast.success('Workout started!', { id: toastId });
@@ -70,10 +67,12 @@ export const WorkoutProvider = ({ children }) => {
 
     const advanceToNext = () => {
         if (!workoutState) return;
+
         const { currentExerciseIndex, currentSet, routineDetails } = workoutState;
         const currentExercise = routineDetails.exercises[currentExerciseIndex];
         const totalSets = parseInt(currentExercise.sets, 10);
         const isLastSet = currentSet === totalSets;
+
         const restTimeSeconds = currentExercise.rest_time_seconds;
         const restUntilTimestamp = Date.now() + restTimeSeconds * 1000;
 
@@ -82,10 +81,23 @@ export const WorkoutProvider = ({ children }) => {
             if (nextExerciseIndex >= routineDetails.exercises.length) {
                 endWorkout(true);
             } else {
-                setWorkoutState(prev => ({ ...prev, currentExerciseIndex: nextExerciseIndex, currentSet: 1, isResting: true, restUntil: restUntilTimestamp }));
+                setWorkoutState(prev => ({
+                    ...prev,
+                    currentExerciseIndex: nextExerciseIndex,
+                    currentSet: 1,
+                    isResting: true,
+                    restUntil: restUntilTimestamp,
+                    restDuration: restTimeSeconds, // <-- Guardar duración
+                }));
             }
         } else {
-            setWorkoutState(prev => ({ ...prev, currentSet: prev.currentSet + 1, isResting: true, restUntil: restUntilTimestamp }));
+            setWorkoutState(prev => ({
+                ...prev,
+                currentSet: prev.currentSet + 1,
+                isResting: true,
+                restUntil: restUntilTimestamp,
+                restDuration: restTimeSeconds, // <-- Guardar duración
+            }));
         }
     };
     
