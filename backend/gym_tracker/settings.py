@@ -10,23 +10,28 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+import dj_database_url
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+# --- CARGAR VARIABLES DE ENTORNO ---
+# Esta línea busca un archivo .env y carga sus variables
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+j7h)3eovfpcf29wf=6lqvw@7#-yw30w-lx8t7w@p%u0m3b(58'
+# --- CONFIGURACIÓN DE SEGURIDAD ---
+# Lee la SECRET_KEY desde el entorno.
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Lee DEBUG desde el entorno. El int() lo convierte a número (1=True, 0=False).
+DEBUG = int(os.environ.get('DEBUG', 1))
 
-ALLOWED_HOSTS = []
-
+# Lee los hosts permitidos desde el entorno y los convierte en una lista.
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Application definition
 
@@ -81,14 +86,10 @@ WSGI_APPLICATION = 'gym_tracker.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'gym_tracker_db',
-        'USER': 'gym_tracker_user',
-        'PASSWORD': 'Toni123.',
-        'HOST': 'localhost',  # o 'db' cuando usemos Docker
-        'PORT': '54321',
-    }
+        'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600 
+        )
 }
 
 
@@ -127,6 +128,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
